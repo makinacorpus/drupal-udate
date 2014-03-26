@@ -1,0 +1,153 @@
+<?php
+
+/**
+ * @file
+ * µDate module.
+ *
+ * I'm not so sure where this will get us.
+ *
+ * This module will imply that your code always uses DateTime and DateInterval
+ * PHP SPL objects for input and output. Do whatever you need to do in your
+ * code but regarding this module anything else than those objects is invalid.
+ */
+
+/**
+ * Force date picker on every page variable name.
+ */
+const UDATE_VAR_JS_ALL = 'udate_js_every_page';
+
+/**
+ * *SQL DATETIME PHP date format (this is a PHP date() format).
+ */
+const UDATE_PHP_DATETIME = 'Y-m-d H:i:s';
+
+/**
+ * Default date format (this is a jQuery.datepicker format).
+ */
+const UDATE_DATE_FORMAT_DEFAULT = 'dd/mm/yy';
+
+/**
+ * Default time format (this is a DateInterval format).
+ */
+const UDATE_TIME_FORMAT_DEFAULT = '%H:%I:%S';
+
+/**
+ * Granularity is seconds.
+ */
+const UDATE_GRANULARITY_SECOND = 0;
+
+/**
+ * Granularity is minutes.
+ */
+const UDATE_GRANULARITY_MINUTE = 1;
+
+/**
+ * Granularity is hours.
+ */
+const UDATE_GRANULARITY_HOUR = 2;
+
+/**
+ * Granularity is days.
+ */
+const UDATE_GRANULARITY_DAY = 5;
+
+/**
+ * Granularity is months.
+ */
+const UDATE_GRANULARITY_MONTH = 8;
+
+/**
+ * Granularity is years.
+ */
+const UDATE_GRANULARITY_YEAR = 10;
+
+/**
+ * Drupal did not group this hook. Sad Drupal is sad.
+ */
+require_once __DIR__ . '/udate.field.inc';
+
+/**
+ * Yes we have no real way to get this out of the .module file.
+ */
+require_once __DIR__ . '/udate.element.inc';
+
+/**
+ * Implements hook_library().
+ */
+function udate_library() {
+  return array(
+    'udate' => array(
+      'title' => 'µDate',
+      'website' => 'none',
+      'version' => '1.0',
+      'js' => array( drupal_get_path('module', 'udate') . '/udate.js' => array()),
+      'dependencies' => array(array('system', 'ui.datepicker')),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function udate_page_build(&$page) {
+  if (variable_get(UDATE_VAR_JS_ALL, true)) {
+    // There is a core bug, when attaching a library forcing the $every_page
+    // parameter to true, this setting won't be propagated to the dependencies
+    // and cause bug on aggregated JS files causing scripts to raise errors.
+    drupal_add_library('system', 'ui', true);
+    drupal_add_library('system', 'ui.datepicker', true);
+    drupal_add_library('udate', 'udate', true);
+  }
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function udate_element_info() {
+  return array(
+    // This widget only supports DateTime objects for input/output.
+    'udate' => array(
+      '#input'            => true,
+      '#process'          => array('udate_element_date_process'),
+      '#element_validate' => array('udate_element_date_validate'),
+      // Those two might be left unset, they will be excluded from the date
+      // picker settings before sending it to JS. Those two must be provided
+      // with the same format as the phpDateFormat/dateFormat settings.
+      // Use the hook_field_widget_form_alter() to change those.
+      '#minDate'          => null,
+      '#maxDate'          => null,
+      '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
+    ),
+    // This widget only supports DateInterval objects for input/output.
+    'utime' => array(
+      '#input'            => true,
+      '#process'          => array('udate_element_time_process'),
+      '#element_validate' => array('udate_element_time_validate'),
+      '#granularity'      => UDATE_GRANULARITY_SECOND,
+    ),
+    // This widget only supports DateTime objects for input/output.
+    'udatetime' => array(
+      '#input'            => true,
+      '#process'          => array('udate_element_datetime_process'),
+      '#element_validate' => array('udate_element_datetime_validate'),
+      // Those two might be left unset, they will be excluded from the date
+      // picker settings before sending it to JS. Those two must be provided
+      // with the same format as the phpDateFormat/dateFormat settings.
+      // Use the hook_field_widget_form_alter() to change those.
+      '#minDate'          => null,
+      '#maxDate'          => null,
+      '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
+      '#granularity'      => UDATE_GRANULARITY_SECOND,
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function udate_views_api() {
+  return array(
+    'version' => '3.0',
+  );
+}

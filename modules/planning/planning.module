@@ -1,0 +1,276 @@
+<?php
+
+/**
+ * @file
+ * µPlanning module.
+ *
+ * This module stores everything in the 'planning' database table. This
+ * mutualises storage for every entity type and bundle and allows other
+ * modules to add arbitrary information.
+ *
+ * Behind the scenes it uses the 'udate' module for the real field in
+ * order to ensures that the users have access to the complete field
+ * workflow (widget, formatters, etc...) but also enables entity field
+ * queries to work gracefully with it.
+ *
+ * Dates between the planning table and the field table will always be in
+ * sync (exceptionnaly might not if a module forgot to use transactions).
+ *
+ * Whenever you need to proceed to complex queries into this database, use
+ * the 'planning' table: its indexes are highly optimized for this. If you
+ * need the entity field query for more complex operations on a single entity
+ * type, use the 'planning' field in your query.
+ *
+ * @todo
+ *   [OK] - Virtual Field for dates
+ *   - Nice field widget
+ *     - With both dates
+ *     - With only start date
+ *   - Apply field to all entities that need it
+ *     - Sync legacy field with new one on update and insert
+ *     - Eventually remove legacy field
+ *   - Rewrite planning screens in this module
+ *   - For fun export planning items as entities, use the entity type
+ *     as bundle key.
+ */
+
+/**
+ * Planning dates field name.
+ */
+const PLANNING_FIELD_NAME = 'planning';
+
+/**
+ * Ensure the 'planning' field instance on the given entity type.
+ *
+ * @param string $type
+ *   Entity type.
+ * @param string $bundle
+ *   Entity bundle.
+ * @param boolean $collectTime
+ *   Should the instance collect time too.
+ * @param boolean $required
+ *   Field values are required.
+ * @param string $label
+ *   Optionnal label.
+ * @param string $description
+ *   Optionnal textual description.
+ */
+function planning_ensure_field_instance($type, $bundle, $collectTime = false, $required = false, $label = null, $description = null) {
+
+  if (!$field = field_info_field(PLANNING_FIELD_NAME)) {
+    field_create_field(array(
+      'field_name'  => PLANNING_FIELD_NAME,
+      'type'        => 'udate_range',
+      'cardinality' => 1,
+      'locked'      => true,
+    ));
+  }
+
+  if ($instance = field_info_instance($type, PLANNING_FIELD_NAME, $bundle)) {
+
+    $instance['label']       = null === $label ? t("Planning dates") : $label;
+    $instance['description'] = $description;
+    $instance['required']    = $required;
+    $instance['settings']    = array('collectTime' => $collectTime);
+
+    field_update_instance($instance);
+
+  } else {
+
+    $instance = array(
+      'field_name'  => PLANNING_FIELD_NAME,
+      'entity_type' => $type,
+      'bundle'      => $bundle,
+      'label'       => null === $label ? t("Planning dates") : $label,
+      'description' => $description,
+      'required'    => $required,
+      'settings'    => array('collectTime' => $collectTime),
+    );
+
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Attach an entity to the planning.
+ *
+ * @param string $entity_type
+ *   Entity type.
+ * @param int|object $entity
+ *   Entity identifier or object.
+ * @param DateTime $dateStart
+ *   Start date.
+ * @param DateTime $dateStop
+ *   Optionnal end date, if null start date will be used.
+ * @param string $title
+ *   Optionnal entry title if different from entity label.
+ */
+function planning_attach($entity_type, $entity, DateTime $dateStart, DateTime $dateEnd = null, $title = null) {
+
+  if (is_object($entity)) {
+    list($id) = entity_extract_ids($entity_type, $entity);
+  } else {
+    $id = (int)$entity;
+    $entity = array_shift(entity_load($entity_type, array($id)));
+  }
+
+  if (null === $dateEnd) {
+    $dateEnd = $dateStart;
+  }
+
+  if (null === $title) {
+    $title = entity_label($entity_type, $entity);
+  }
+
+  $entry = db_select('planning', 'p')
+    ->fields('p')
+    ->condition('p.entity_type', $entity_type)
+    ->condition('p.entity_id', $id)
+    ->range(0, 1)
+    ->execute()
+    ->fetch();
+
+  if (!$entry) {
+    $entry = new stdClass();
+  }
+
+  $entry->entity_type = $entity_type;
+  $entry->entity_id   = $id;
+  $entry->date_start  = $dateStart->format(UDATE_PHP_DATETIME);
+  $entry->date_end    = $dateEnd->format(UDATE_PHP_DATETIME);
+  $entry->title       = $title;
+
+  module_invoke_all('planning_presave', $entry, $entity);
+  module_invoke_all('entity_presave', $entry, 'planning');
+
+  if (isset($entry->id)) {
+
+    drupal_write_record('planning', $entry, array('id'));
+
+    module_invoke_all('planning_update', $entry, $entity);
+    module_invoke_all('entity_update', $entry, 'planning');
+
+  } else {
+
+    drupal_write_record('planning', $entry);
+
+    module_invoke_all('planning_insert', $entry, $entity);
+    module_invoke_all('entity_insert', $entry, 'planning');
+  }
+}
+
+/**
+ * Detach an entity from the planning.
+ *
+ * @param string $entity_type
+ *   Entity type.
+ * @param int|object $entity
+ *   entity identifier or object.
+ */
+function planning_detach($entity_type, $entity) {
+
+  if (is_object($entity)) {
+    list($id) = entity_extract_ids($entity_type, $entity);
+  } else {
+    $id = (int)$entity;
+    $entity = array_shift(entity_load($entity_type, array($id)));
+  }
+
+  $entry = db_select('planning', 'p')
+    ->fields('p')
+    ->condition('p.entity_type', $entity_type)
+    ->condition('p.entity_id', $id)
+    ->range(0, 1)
+    ->execute()
+    ->fetch();
+
+  if (!empty($entry)) {
+
+    $entry->date_start = DateTime::createFromFormat(UDATE_PHP_DATETIME, $entry->date_start);
+    $entry->date_end = DateTime::createFromFormat(UDATE_PHP_DATETIME, $entry->date_end);
+
+    db_delete('planning')
+      ->condition('entity_type', $entity_type)
+      ->condition('entity_id', $id)
+      ->execute();
+
+    module_invoke_all('planning_delete', $entry, $entity);
+    module_invoke_all('entity_delete', $entry, 'planning');
+  }
+}
+
+/**
+ * Synchronises the {planning} table using entity data.
+ *
+ * @param string $entity_type
+ * @param object $entity
+ * @param boolean $delete
+ */
+function planning_field_attach_sync($entity_type, $entity, $delete = false) {
+
+  list($id,, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  if ($instance = field_info_instance($entity_type, PLANNING_FIELD_NAME, $bundle)) {
+
+    if ($delete) {
+
+      planning_detach($entity_type, $entity);
+
+    } else {
+      foreach (field_get_items($entity_type, $entity, PLANNING_FIELD_NAME) as $item) {
+
+        // Now we have some problems due to udate weird hack during field save.
+        // Planning only works with at least a start date.
+        if (!empty($item['date_start'])) {
+
+          if ($item['date_start'] instanceof DateTime) {
+            $dateStart = $item['date_start'];
+          } else {
+            $dateStart = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_start']);
+          }
+
+          if (!empty($item['date_end'])) {
+            if ($item['date_end'] instanceof DateTime) {
+              $dateEnd = $item['date_end'];
+            } else {
+              $dateEnd = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_end']);
+            }
+          } else {
+            $dateEnd = null;
+          }
+
+          planning_attach($entity_type, $entity, $dateStart, $dateEnd);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_udpate().
+ */
+function planning_field_attach_update($entity_type, $entity) {
+  planning_field_attach_sync($entity_type, $entity, false);
+}
+
+/**
+ * Implements hook_field_attach_insert().
+ */
+function planning_field_attach_insert($entity_type, $entity) {
+  planning_field_attach_sync($entity_type, $entity, false);
+}
+
+/**
+ * Implements hook_field_attach_delete().
+ */
+function planning_field_attach_delete($entity_type, $entity) {
+  planning_field_attach_sync($entity_type, $entity, true);
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function planning_entity_delete($entity, $type) {
+  planning_detach($type, $entity);
+}
+

@@ -1,0 +1,5 @@
+name = Planning
+description = Handle a SQL optimized planning throught a field API hack using the µDate module.
+core = 7.x
+php = 5.3
+dependencies[] = udate

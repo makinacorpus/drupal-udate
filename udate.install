@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ */
+function udate_field_schema($field) {
+  switch ($field['type']) {
+
+    case 'udate':
+      return array(
+        'columns' => array(
+          'date' => array(
+            'mysql_type' => 'datetime',
+            'pgsql_type' => 'timestamp',
+            'type'       => 'varchar',
+            'length'     => 16,
+            'not null'   => false,
+          ),
+          'granularity' => array(
+            'type'       => 'int',
+            'not null'   => true,
+            'default'    => 0,
+          ),
+        ),
+        'indexes' => array(
+          'date' => array('date'),
+        ),
+      );
+
+    case 'udate_range':
+      return array(
+        'columns' => array(
+          'date_start' => array(
+            'mysql_type' => 'datetime',
+            'pgsql_type' => 'timestamp',
+            'type'       => 'varchar',
+            'length'     => 16,
+            'not null'   => false,
+          ),
+          'date_end' => array(
+            'mysql_type' => 'datetime',
+            'pgsql_type' => 'timestamp',
+            'type'       => 'varchar',
+            'length'     => 16,
+            'not null'   => false,
+          ),
+          'granularity' => array(
+            'type'       => 'int',
+            'not null'   => true,
+            'default'    => 0,
+          ),
+        ),
+        'indexes' => array(
+          'range' => array('date_start', 'date_end'),
+        ),
+      );
+  }
+}

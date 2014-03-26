@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function planning_schema() {
+
+  $schema = array();
+
+  $schema['planning'] = array(
+    'description' => 'Planning',
+    'fields' => array(
+      'id' => array(
+        'description' => "Primary identifier",
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
+      ),
+      'date_start' => array(
+        'description' => "Start date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => true,
+      ),
+      'date_end' => array(
+        'description' => "End date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => true,
+      ),
+      'entity_type' => array(
+        'description' => "Entity type",
+        'type'        => 'varchar',
+        'length'      => 128,
+        'not null'    => false,
+      ),
+      'entity_id' => array(
+        'description' => "Entity identifier if any",
+        'type'        => 'int',
+        'unsigned'    => true,
+        'not null'    => false,
+      ),
+      'title' => array(
+        'description' => "Title",
+        'type'        => 'varchar',
+        'length'      => 1024,
+        'not null'    => false,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      // For entity delete and update operations.
+      'planning_entity_idx' => array('entity_type', 'entity_id'),
+      // We are going to use UNION queries.
+      'planning_start_idx' => array('date_start', 'entity_type'),
+      'planning_end_idx' => array('date_end', 'entity_type'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Add the missing primary identifier to the {planning} table.
+ */
+function planning_update_7001() {
+  if (db_table_exists('planning') && !db_field_exists('planning', 'id')) {
+    db_query("CREATE TEMPORARY TABLE {planning_backup} AS SELECT * FROM {planning}");
+    db_drop_table('planning');
+    db_create_table('planning', drupal_get_schema_unprocessed('planning', 'planning'));
+    db_query("INSERT INTO {planning} (date_start, date_end, entity_type, entity_id) SELECT date_start, date_end, entity_type, entity_id FROM {planning_backup}");
+    db_drop_table('planning_backup');
+  }
+}
+
+/**
+ * Better indexes for the planning table.
+ */
+function planning_update_7002() {
+  if (db_index_exists('planning', 'planning_dates_idx')) {
+    db_drop_index('planning', 'planning_dates_idx');
+  }
+  if (!db_index_exists('planning', 'planning_start_idx')) {
+    db_add_index('planning', 'planning_start_idx', array('date_start', 'entity_type'));
+  }
+  if (!db_index_exists('planning', 'planning_end_idx')) {
+    db_add_index('planning', 'planning_end_idx', array('date_end', 'entity_type'));
+  }
+}
+
+/**
+ * Missing {planning}.title field.
+ */
+function planning_update_7003() {
+  if (!db_field_exists('planning', 'title')) {
+    db_add_field('planning', 'title', array(
+      'description' => "Title",
+      'type'        => 'varchar',
+      'length'      => 1024,
+      'not null'    => false,
+    ));
+  }
+}
