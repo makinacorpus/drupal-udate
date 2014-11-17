@@ -12,6 +12,8 @@
  */
 function udate_element_date_process($element) {
 
+  $element['#tree'] = true;
+
   // Validate the input.
   if (isset($element['#value']) && $element['#value'] instanceof DateTime) {
     $value = $element['#value'];
@@ -68,7 +70,10 @@ function udate_element_date_process($element) {
     '#size'          => 10,
     '#maxlength'     => 10,
     '#required'      => isset($element['#required']) ? $element['#required'] : false,
+    '#description'   => isset($element['#description']) ? $element['#description'] : null,
   );
+
+  unset($element['#required']); // Avoid stupid FAPI errors.
 
   $element['#settings'] = $settings;
 
