@@ -216,6 +216,12 @@ function udate_field_attach_presave($entity_type, $entity) {
             if (!empty($item[$key])) {
               if ($item[$key] instanceof DateTime) {
                 $item[$key] = $item[$key]->format(UDATE_PHP_DATETIME);
+                // PDOException : SQLSTATE[23000]: Integrity constraint violation: 1048
+                // Column 'planning_granularity' cannot be null: INSERT INTO {field_data_planning}
+                // @todo Check this has no other implications.
+                if (empty($item['granularity'])) {
+                  $item['granularity'] = 0;
+                }
               }
             }
           }

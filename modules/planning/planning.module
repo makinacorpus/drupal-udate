@@ -217,29 +217,31 @@ function planning_field_attach_sync($entity_type, $entity, $delete = false) {
       planning_detach($entity_type, $entity);
 
     } else {
-      foreach (field_get_items($entity_type, $entity, PLANNING_FIELD_NAME) as $item) {
+      if($items = field_get_items($entity_type, $entity, PLANNING_FIELD_NAME)) {
+        foreach ($items as $item) {
 
-        // Now we have some problems due to udate weird hack during field save.
-        // Planning only works with at least a start date.
-        if (!empty($item['date_start'])) {
+          // Now we have some problems due to udate weird hack during field save.
+          // Planning only works with at least a start date.
+          if (!empty($item['date_start'])) {
 
-          if ($item['date_start'] instanceof DateTime) {
-            $dateStart = $item['date_start'];
-          } else {
-            $dateStart = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_start']);
-          }
-
-          if (!empty($item['date_end'])) {
-            if ($item['date_end'] instanceof DateTime) {
-              $dateEnd = $item['date_end'];
+            if ($item['date_start'] instanceof DateTime) {
+              $dateStart = $item['date_start'];
             } else {
-              $dateEnd = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_end']);
+              $dateStart = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_start']);
             }
-          } else {
-            $dateEnd = null;
-          }
 
-          planning_attach($entity_type, $entity, $dateStart, $dateEnd);
+            if (!empty($item['date_end'])) {
+              if ($item['date_end'] instanceof DateTime) {
+                $dateEnd = $item['date_end'];
+              } else {
+                $dateEnd = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item['date_end']);
+              }
+            } else {
+              $dateEnd = null;
+            }
+
+            planning_attach($entity_type, $entity, $dateStart, $dateEnd);
+          }
         }
       }
     }
