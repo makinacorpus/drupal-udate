@@ -116,7 +116,7 @@ function udate_field_widget_settings_form($field, $instance) {
 
   $element = array();
 
-  switch ($instance['widget']) {
+  switch ($instance['widget']['type']) {
 
     case 'udate':
     case 'udate_range':
@@ -150,18 +150,19 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
 
   if (!empty($keys)) {
 
-    $elementType   = $instance['settings']['collectTime'] ? 'udatetime' : 'udate';
-    $granularity   = $instance['settings']['granularity'];
-    $dateFormat    = $instance['widget']['settings']['dateFormat'];
-    $phpDateFormat = udate_format_convert($dateFormat);
+    $elementType  = $instance['settings']['collectTime'] ? 'udatetime' : 'udate';
+    $granularity  = $instance['settings']['granularity'];
+    $dateFormat   = $instance['widget']['settings']['dateFormat'];
 
     foreach ($keys as $key => $title) {
+
       $element[$key] = array(
         '#title'       => $title,
         '#type'        => $elementType,
         '#granularity' => $granularity,
         '#dateFormat'  => $dateFormat,
       );
+
       if (!empty($items[$delta][$key])) {
         // Invalid dates will become null so that's not a problem for us.
         $element[$key]['#default_value'] = $items[$delta][$key];

@@ -105,7 +105,7 @@ function udate_element_date_validate(&$element, &$form_state, $form) {
   $value = $element['date']['#value'];
 
   // Value can be null?
-  if (!$element['#required'] && empty($value)) {
+  if (empty($element['#required']) && empty($value)) {
     $element['#value'] = null;
     $element['date']['#value'] = null;
     form_set_value($element, null, $form_state);
@@ -253,7 +253,7 @@ function udate_element_datetime_validate(&$element, &$form_state, $form) {
   $time = $element['container']['time']['#value'];
 
   // Value can be null?
-  if (!$element['#required'] && empty($date)) {
+  if (empty($element['#required']) && empty($date)) {
     form_set_value($element, $element['#value'] = null, $form_state);
     return;
   }
