@@ -60,17 +60,22 @@ function udate_element_date_process($element) {
     $id = drupal_clean_css_identifier($element['#id']);
   }
 
+  $now = new DateTime();
+
   // Spawn the real widget.
   $element['date'] = array(
-    '#title'         => isset($element['#title']) ? $element['#title'] : null,
-    '#id'            => $id,
-    '#type'          => 'textfield',
-    '#attributes'    => array('title' => t("Date format is @format", array('@format' => $element['#dateFormat']))),
-    '#default_value' => isset($value) ? $value->format($phpFormat) : null,
-    '#size'          => 10,
-    '#maxlength'     => 10,
-    '#required'      => isset($element['#required']) ? $element['#required'] : false,
-    '#description'   => isset($element['#description']) ? $element['#description'] : null,
+    '#title'          => isset($element['#title']) ? $element['#title'] : null,
+    '#id'             => $id,
+    '#type'           => 'textfield',
+    '#attributes'     => array(
+      'placeholder'   => $now->format($phpFormat),
+      'title'         => t("Date format is @format", array('@format' => $element['#dateFormat'])),
+    ),
+    '#default_value'  => isset($value) ? $value->format($phpFormat) : null,
+    '#size'           => 10,
+    '#maxlength'      => 10,
+    '#required'       => isset($element['#required']) ? $element['#required'] : false,
+    '#description'    => isset($element['#description']) ? $element['#description'] : null,
   );
 
   unset($element['#required']); // Avoid stupid FAPI errors.
@@ -130,21 +135,34 @@ function udate_element_date_validate(&$element, &$form_state, $form) {
  */
 function udate_element_time_process($element) {
 
+  /* @var $value \DateInterval */
   if (isset($element['#value']) && $element['#value'] instanceof DateInterval) {
     $value = $element['#value'];
   } else {
     $value = $element['#value'] = null;
   }
 
+  $now = new DateTime();
+
   $element['time'] = array(
-    '#title'         => isset($element['#title']) ? $element['#title'] : null,
-    '#type'          => 'textfield',
-    '#attributes'    => array('title' => t("Time format is @format", array('@format' => 'HH:MM:SS'))),
-    '#default_value' => $value ? $value->format(UDATE_TIME_FORMAT_DEFAULT) : null,
-    '#size'          => 8,
-    '#maxlength'     => 8,
-    '#required'      => isset($element['#required']) ? $element['#required'] : false,
+    '#title'          => isset($element['#title']) ? $element['#title'] : null,
+    '#type'           => 'textfield',
+    '#attributes'     => array(
+      'placeholder'   => $now->format('H:i:s'),
+      'title'         => t("Time format is @format", array('@format' => 'HH:MM:SS'))
+    ),
+    '#default_value'  => $value ? $value->format(UDATE_TIME_FORMAT_DEFAULT) : null,
+    '#size'           => 8,
+    '#maxlength'      => 8,
+    '#required'       => isset($element['#required']) ? $element['#required'] : false,
   );
+
+  // Special use case, leave the field empty when the hour is set to
+  // just all zeros, it seems legit that the user probably didn't fill
+  // any value here.
+  if ($value && !$element['#required'] && '000' === $value->format('%h%i%s')) {
+    $element['time']['#default_value'] = '';
+  }
 
   return $element;
 }
