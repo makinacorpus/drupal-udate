@@ -97,6 +97,7 @@ function udate_field_widget_info() {
       'field types' => array('udate'),
       'settings' => array(
         'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'granularity' => null,
       ),
     ),
     'udate_range' => array(
@@ -104,6 +105,18 @@ function udate_field_widget_info() {
       'field types' => array('udate_range'),
       'settings' => array(
         'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'granularity' => null,
+      ),
+    ),
+    // Next two are useful if you wish to replace the 'date' module field
+    // widget with this one, which will probably be, in the end, much more
+    // stable, efficient and surprise-less.
+    'udate_legacy_date' => array(
+      'label' => t("Date picker"),
+      'field types' => array('datestamp', 'datetime'),
+      'settings' => array(
+        'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'granularity' => null,
       ),
     ),
   );
@@ -120,11 +133,26 @@ function udate_field_widget_settings_form($field, $instance) {
 
     case 'udate':
     case 'udate_range':
+    case 'udate_legacy_date':
       $element['dateFormat'] = array(
-        '#title'         => t("Date format in widget"),
-        '#type'          => 'textfield',
-        '#default_value' => $widget['settings']['dateFormat'],
-        '#description'   => t("Widget works without JS even thought it's a jQuery datepicker, this determines the date format being used in the textfield. Please be aware that what is being asked here is a jQuery datepicker date format, not a PHP date format."),
+        '#title'          => t("Date format in widget"),
+        '#type'           => 'textfield',
+        '#default_value'  => $instance['widget']['settings']['dateFormat'],
+        '#description'    => t("Widget works without JS even thought it's a jQuery datepicker, this determines the date format being used in the textfield. Please be aware that what is being asked here is a jQuery datepicker date format, not a PHP date format."),
+      );
+
+      // @todo This not logicial we should limit by the only possible values
+      // but this will imply we can't transparently support the 'date' module
+      // fields.
+      $min = UDATE_GRANULARITY_SECOND; // empty($field['settings']['collectTime']) ? UDATE_GRANULARITY_DAY : UDATE_GRANULARITY_SECOND;
+      $max = UDATE_GRANULARITY_YEAR;
+
+      $element['granularity'] = array(
+        '#title'          => t("Granularity"),
+        '#type'           => 'select',
+        '#options'        => udate_granularity_list($min, $max),
+        '#empty_option'   => t("Field default setting"),
+        '#default_value'  => $instance['widget']['settings']['granularity'],
       );
       break;
   }
@@ -133,9 +161,165 @@ function udate_field_widget_settings_form($field, $instance) {
 }
 
 /**
+ * Value callback for 'date' module widgets.
+ */
+function udate_legacy_field_widget_form_validate(&$element, &$form_state, $form) {
+
+  $value = array('value' => null, 'value2' => null, 'timezone' => $element['#timezone']);
+
+  switch ($element['#fieldType']) {
+
+    case 'datetime':
+      if (isset($element['value']) && $element['value']['#value'] instanceof DateTime) {
+        $value['value'] = $element['value']['#value']->format(UDATE_PHP_DATETIME);
+      }
+      if (isset($element['value2']) && $element['value2']['#value'] instanceof DateTime) {
+        $value['value2'] = $element['value2']['#value']->format(UDATE_PHP_DATETIME);
+      }
+      break;
+
+    case 'datestamp':
+      if (isset($element['value']) && $element['value']['#value'] instanceof DateTime) {
+        $value['value'] = $element['value']['#value']->getTimestamp();
+      }
+      if (isset($element['value2']) && $element['value2']['#value'] instanceof DateTime) {
+        $value['value2'] = $element['value2']['#value']->getTimestamp();
+      }
+      break;
+  }
+
+  form_set_value($element, $element['#value'] = $value, $form_state);
+}
+
+/**
+ * Get default timezone for field item.
+ */
+function udate_legacy_field_item_timezone_get($item, $field) {
+  // Date module is so stupid.
+  if (empty($item['timezone']) || empty($field['settings']['tz_handling']) || 'none' === $field['settings']['tz_handling']) {
+    // More or less the same that the 'date' module would do, without being
+    // hardwired to the 'date' module functions.
+    global $user;
+    if (variable_get('configurable_timezones', 1) && !empty($user->timezone)) {
+      $timezone = $user->timezone;
+    } else {
+      $timezone = variable_get('date_default_timezone', 'UTC');
+    }
+  } else {
+    $timezone = $item['timezone'];
+  }
+  return $timezone;
+}
+
+/**
+ * Implements hook_field_widget_form() for 'date' module widgets.
+ */
+function udate_legacy_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  if (empty($field['settings']['todate'])) {
+    $keys = array('value' => null);
+  } else {
+    $keys = array('value' => t("Start date"), 'value2' => t("End date"));
+  }
+
+  if (!empty($keys)) {
+
+    $granularity  = $field['settings']['granularity'];
+    $elementType  = empty($granularity['hour']) ? 'udate' : 'udatetime';
+    $dateFormat   = $instance['widget']['settings']['dateFormat'];
+
+    // Restore granularity from the date module stuff.
+    if (empty($granularity['month'])) {
+      $granularity = UDATE_GRANULARITY_YEAR;
+    } if (empty($granularity['day'])) {
+      $granularity = UDATE_GRANULARITY_MONTH;
+    } if (empty($granularity['hour'])) {
+      $granularity = UDATE_GRANULARITY_DAY;
+    } if (empty($granularity['minute'])) {
+      $granularity = UDATE_GRANULARITY_HOUR;
+    } else if (empty($granularity['second'])) {
+      $granularity = UDATE_GRANULARITY_MINUTE;
+    } else {
+      $granularity = UDATE_GRANULARITY_SECOND;
+    }
+
+    if (isset($items[$delta])) {
+      $timezone = udate_legacy_field_item_timezone_get($items[$delta], $field);
+    } else {
+      $timezone = udate_legacy_field_item_timezone_get(array(), $field);
+    }
+
+    foreach ($keys as $key => $title) {
+
+      $element[$key] = array(
+        '#title'        => $title,
+        '#type'         => $elementType,
+        '#granularity'  => $granularity,
+        '#dateFormat'   => $dateFormat,
+      );
+
+      if (!empty($items[$delta][$key])) {
+        $value = null;
+
+        switch ($field['type']) {
+
+          case 'datetime':
+            try {
+              $value = DateTime::createFromFormat(UDATE_PHP_DATETIME, $items[$delta][$key]);
+            } catch (Exception $e) {
+              trigger_error($e->getMessage(), E_USER_WARNING);
+              $value = null;
+            }
+            break;
+
+          case 'datestamp':
+            try {
+              $value = new DateTime('@' . $items[$delta][$key]);
+            } catch (Exception $e) {
+              trigger_error($e->getMessage(), E_USER_WARNING);
+              $value = null;
+            }
+            break;
+        }
+
+        if ($value instanceof DateTime) {
+          // Ok, now we have a date module problem, don't let him change our
+          // values behind our backs and translate it while we still can.
+          // Because this stupid module actually did translate our item.
+          $from = 'UTC';
+          if (!empty($items[$key]['timezone_db'])) {
+            $from = $items[$key]['timezone_db'];
+          }
+          if ($from !== $timezone) {
+            $value->setTimezone(new DateTimeZone($timezone));
+          }
+        }
+
+        $element[$key]['#default_value'] = $value;
+      }
+    }
+
+    $element['granularity'] = array(
+      '#type'  => 'value',
+      '#value' => $granularity,
+    );
+  }
+
+  $element['#fieldType'] = $field['type'];
+  $element['#timezone'] = $timezone;
+  $element['#element_validate'][] = 'udate_legacy_field_widget_form_validate';
+
+  return $element;
+}
+
+/**
  * Implements hook_field_widget_form().
  */
 function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  if ('udate_legacy_date' === $instance['widget']['type']) {
+    return udate_legacy_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+  }
 
   switch ($instance['widget']['type']) {
 

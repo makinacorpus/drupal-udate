@@ -142,6 +142,36 @@ function udate_element_info() {
   );
 }
 
+/**
+ * List of granularties suitable for form select.
+ *
+ * @param int $min
+ * @param int $max
+ *
+ * @return string[]
+ *   Keys are UDATE_GRANULARITY_* constants and values are human readable names.
+ */
+function udate_granularity_list($min = null, $max = null) {
+  $ret = array(
+    UDATE_GRANULARITY_SECOND  => t("Second"),
+    UDATE_GRANULARITY_MINUTE  => t("Minute"),
+    UDATE_GRANULARITY_HOUR    => t("Hour"),
+    UDATE_GRANULARITY_DAY     => t("Day"),
+    UDATE_GRANULARITY_MONTH   => t("Month"),
+    UDATE_GRANULARITY_YEAR    => t("Year"),
+  );
+  // Bouh c'est moche.
+  if (null !== $min || null !== $max) {
+    foreach (array_keys($ret) as $key) {
+      if (null !== $min && $key < $min) {
+        unset($ret[$key]);
+      } else if (null !== $max && $max < $key) {
+        unset($ret[$key]);
+      }
+    }
+  }
+  return $ret;
+}
 
 /**
  * Implements hook_views_api().
