@@ -96,16 +96,18 @@ function udate_field_widget_info() {
       'label' => t("Date picker"),
       'field types' => array('udate'),
       'settings' => array(
-        'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'dateFormat'  => UDATE_DATE_FORMAT_DEFAULT,
         'granularity' => null,
+        'timeTitle'   => null,
       ),
     ),
     'udate_range' => array(
       'label' => t("Date picker"),
       'field types' => array('udate_range'),
       'settings' => array(
-        'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'dateFormat'  => UDATE_DATE_FORMAT_DEFAULT,
         'granularity' => null,
+        'timeTitle'   => null,
       ),
     ),
     // Next two are useful if you wish to replace the 'date' module field
@@ -115,8 +117,9 @@ function udate_field_widget_info() {
       'label' => t("Date picker"),
       'field types' => array('datestamp', 'datetime'),
       'settings' => array(
-        'dateFormat' => UDATE_DATE_FORMAT_DEFAULT,
+        'dateFormat'  => UDATE_DATE_FORMAT_DEFAULT,
         'granularity' => null,
+        'timeTitle'   => null,
       ),
     ),
   );
@@ -134,11 +137,18 @@ function udate_field_widget_settings_form($field, $instance) {
     case 'udate':
     case 'udate_range':
     case 'udate_legacy_date':
+
       $element['dateFormat'] = array(
         '#title'          => t("Date format in widget"),
         '#type'           => 'textfield',
         '#default_value'  => $instance['widget']['settings']['dateFormat'],
         '#description'    => t("Widget works without JS even thought it's a jQuery datepicker, this determines the date format being used in the textfield. Please be aware that what is being asked here is a jQuery datepicker date format, not a PHP date format."),
+      );
+
+      $element['timeTitle'] = array(
+        '#title'          => t("Time widget title"),
+        '#type'           => 'textfield',
+        '#default_value'  => $instance['widget']['settings']['timeTitle'],
       );
 
       // @todo This not logicial we should limit by the only possible values
@@ -227,6 +237,7 @@ function udate_legacy_field_widget_form(&$form, &$form_state, $field, $instance,
     $granularity  = $field['settings']['granularity'];
     $elementType  = empty($granularity['hour']) ? 'udate' : 'udatetime';
     $dateFormat   = $instance['widget']['settings']['dateFormat'];
+    $timeTitle    = $instance['widget']['settings']['timeTitle'];
 
     // Restore granularity from the date module stuff.
     if (empty($granularity['month'])) {
@@ -256,6 +267,7 @@ function udate_legacy_field_widget_form(&$form, &$form_state, $field, $instance,
         '#type'         => $elementType,
         '#granularity'  => $granularity,
         '#dateFormat'   => $dateFormat,
+        '#timeTitle'    => $timeTitle,
       );
 
       if (!empty($items[$delta][$key])) {
@@ -337,14 +349,16 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
     $elementType  = $instance['settings']['collectTime'] ? 'udatetime' : 'udate';
     $granularity  = $instance['settings']['granularity'];
     $dateFormat   = $instance['widget']['settings']['dateFormat'];
+    $timeTitle    = $instance['widget']['settings']['timeTitle'];
 
     foreach ($keys as $key => $title) {
 
       $element[$key] = array(
-        '#title'       => $title,
-        '#type'        => $elementType,
-        '#granularity' => $granularity,
-        '#dateFormat'  => $dateFormat,
+        '#title'        => $title,
+        '#type'         => $elementType,
+        '#granularity'  => $granularity,
+        '#dateFormat'   => $dateFormat,
+        '#timeTitle'    => $timeTitle,
       );
 
       if (!empty($items[$delta][$key])) {

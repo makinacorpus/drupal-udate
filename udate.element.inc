@@ -78,7 +78,7 @@ function udate_element_date_process($element) {
     '#description'    => isset($element['#description']) ? $element['#description'] : null,
   );
 
-  unset($element['#required']); // Avoid stupid FAPI errors.
+  $element['#required'] = false; // Avoid stupid FAPI errors.
 
   $element['#settings'] = $settings;
 
@@ -225,20 +225,21 @@ function udate_element_datetime_process($element) {
   );
 
   $element['container']['date'] = array(
-    '#title'         => isset($element['#title']) ? $element['#title'] : null,
-    '#type'          => 'udate',
-    '#required'      => isset($element['#required']) ? $element['#required'] : false,
-    '#minDate'       => $element['#minDate'],
-    '#maxDate'       => $element['#maxDate'],
-    '#dateFormat'    => $element['#dateFormat'],
-    '#default_value' => $value,
+    '#title'          => isset($element['#title']) ? $element['#title'] : null,
+    '#type'           => 'udate',
+    '#required'       => isset($element['#required']) ? $element['#required'] : false,
+    '#minDate'        => $element['#minDate'],
+    '#maxDate'        => $element['#maxDate'],
+    '#dateFormat'     => $element['#dateFormat'],
+    '#default_value'  => $value,
   );
 
   $element['container']['time'] = array(
-    '#type'          => 'utime',
-    '#required'      => isset($element['#required']) ? $element['#required'] : false,
-    '#granularity'   => $element['#granularity'],
-    '#default_value' => $value ? new DateInterval($value->format('\P\TH\Hi\Ms\S')) : null,
+    '#type'           => 'utime',
+    '#title'          => empty($element['#timeTitle']) ? null : $element['#timeTitle'],
+    '#required'       => isset($element['#required']) ? $element['#required'] : false,
+    '#granularity'    => $element['#granularity'],
+    '#default_value'  => $value ? new DateInterval($value->format('\P\TH\Hi\Ms\S')) : null,
   );
 
   return $element;

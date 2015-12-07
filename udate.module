@@ -128,6 +128,7 @@ function udate_element_info() {
     // This widget only supports DateTime objects for input/output.
     'udatetime' => array(
       '#input'            => true,
+      '#timeTitle'        => null,
       '#process'          => array('udate_element_datetime_process'),
       '#element_validate' => array('udate_element_datetime_validate'),
       // Those two might be left unset, they will be excluded from the date
