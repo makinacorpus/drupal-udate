@@ -1,7 +1,7 @@
 name = µDate
 description = Microscopic date field module
 core = 7.x
-package = lab'Orange
+package = Date management
 php = 5.3
 files[] = lib/Udate/CalendarEntityRowPlugin.php
 files[] = lib/Udate/CalendarStylePlugin.php
