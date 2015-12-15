@@ -1,0 +1,19 @@
+{
+    "name": "makinacorpus/drupal-udate",
+    "type": "drupal-module",
+    "description": "Drupal microscopic date field module.",
+    "keywords": [],
+    "homepage": "http://github.com/makinacorpus/drupal-udate",
+    "license": "GPL-2",
+    "authors": [
+        {
+            "name": "Pierre Rineau",
+            "email": "pierre.rineau@makina-corpus.com"
+        },
+        {
+            "name": "Makina Corpus",
+            "homepage": "http://makina-corpus.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
