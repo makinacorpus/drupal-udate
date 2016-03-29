@@ -227,7 +227,7 @@ function udate_legacy_field_item_timezone_get($item, $field) {
 function udate_legacy_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 
   if (empty($field['settings']['todate'])) {
-    $keys = array('value' => null);
+    $keys = array('value' => t('Date'));
   } else {
     $keys = array('value' => t("Start date"), 'value2' => t("End date"));
   }
@@ -336,7 +336,7 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
   switch ($instance['widget']['type']) {
 
     case 'udate':
-      $keys = array('date' => null);
+      $keys = array('date' => t('Date'));
       break;
 
     case 'udate_range':
