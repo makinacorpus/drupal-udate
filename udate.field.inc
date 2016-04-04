@@ -46,7 +46,8 @@ function udate_field_formatter_info() {
       'label' => t("Drupal date format"),
       'field types' => array('udate'),
       'settings' => array(
-        'drupalDateFormat' => 'normal',
+        'format' => 'custom',
+        'custom' => 'd/m/Y',
       ),
     ),
     'udate_range' => array(
@@ -63,28 +64,61 @@ function udate_field_formatter_info() {
  * Implements hook_field_formatter_settings_form().
  */
 function udate_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  global $language;
+  $languages = [$language->language];
 
   $display  = $instance['display'][$view_mode];
   $settings = $display['settings'];
-  $element  = array();
 
-  // @todo
+  $date_formats = locale_get_localized_date_format($languages) + ['custom' => t('Custom')];
+  $form['format'] = [
+    '#title'         => t('Format'),
+    '#type'          => 'select',
+    '#default_value' => $settings['format'],
+    '#options'       => $date_formats,
+    '#required'      => TRUE,
+  ];
+  $form['custom'] = [
+    '#title'         => t('Custom format'),
+    '#type'          => 'textfield',
+    '#default_value' => $settings['custom'],
+    '#required'      => FALSE,
+    '#states'        => [
+      'visible' => [
+        ':input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][format]"]' => ['value' => 'custom'],
+      ],
+    ],
+  ];
 
-  return $element;
+  return $form;
 }
 
 /**
  * Implements hook_field_formatter_settings_summary().
  */
 function udate_field_formatter_settings_summary($field, $instance, $view_mode) {
-
   $display  = $instance['display'][$view_mode];
   $settings = $display['settings'];
-  $summary  = '';
 
-  // @todo
+  return format_date(time(), $settings['format'], $settings['custom']);
+}
 
-  return $summary;
+/**
+ * Implements hook_field_formatter_view().
+ */
+function udate_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = [];
+  $settings = $display['settings'];
+  $format = $settings['format'];
+  $custom = $settings['custom'];
+
+  foreach ($items as $delta => $item) {
+    /** @var $date DateTime */
+    $date = $item['date'];
+    $element[$delta]['#markup'] = format_date($date->getTimestamp(), $format, $custom);
+  }
+
+  return $element;
 }
 
 /**
