@@ -117,6 +117,13 @@ function udate_element_info() {
       '#minDate'          => null,
       '#maxDate'          => null,
       '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
+      '#attached' => [
+        'library' =>
+          [
+            ['system', 'ui.datepicker'],
+            ['udate', 'udate'],
+          ],
+      ],
     ),
     // This widget only supports DateInterval objects for input/output.
     'utime' => array(
