@@ -114,7 +114,14 @@ function udate_field_formatter_view($entity_type, $entity, $field, $instance, $l
 
   foreach ($items as $delta => $item) {
     /** @var $date DateTime */
-    $date = $item['date'];
+    if (isset($item['date'])) {
+      $date = $item['date'];
+      // Sorry sometime it seems to fail, weird...
+    } else if (isset($item['date_start'])) {
+      $date = $item['date_start'];
+    } else {
+      continue;
+    }
     $element[$delta]['#markup'] = format_date($date->getTimestamp(), $format, $custom);
   }
 
