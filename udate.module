@@ -22,6 +22,16 @@ const UDATE_VAR_JS_ALL = 'udate_js_every_page';
 const UDATE_PHP_DATETIME = 'Y-m-d H:i:s';
 
 /**
+ * *SQL DATE date format (this is a PHP date() format).
+ */
+const UDATE_PHP_DATE = 'Y-m-d';
+
+/**
+ * *SQL TIME date format (this is a PHP DateInterface::format() format).
+ */
+const UDATE_PHP_TIME = 'H:I:S';
+
+/**
  * Default date format (this is a jQuery.datepicker format).
  */
 const UDATE_DATE_FORMAT_DEFAULT = 'dd/mm/yy';
@@ -30,6 +40,16 @@ const UDATE_DATE_FORMAT_DEFAULT = 'dd/mm/yy';
  * Default time format (this is a DateInterval format).
  */
 const UDATE_TIME_FORMAT_DEFAULT = '%H:%I:%S';
+
+/**
+ * Default time format (this is a DateInterval format).
+ */
+const UDATE_TIME_FORMAT_MINUTE = '%H:%I';
+
+/**
+ * Default time format (this is a DateInterval format).
+ */
+const UDATE_TIME_FORMAT_HOUR = '%H';
 
 /**
  * Granularity is seconds.

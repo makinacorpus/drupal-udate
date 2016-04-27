@@ -13,6 +13,7 @@
 function udate_element_date_process($element) {
 
   $element['#tree'] = true;
+  unset($element['#input']);
 
   // Validate the input.
   if (isset($element['#value']) && $element['#value'] instanceof DateTime) {
@@ -135,6 +136,8 @@ function udate_element_date_validate(&$element, &$form_state, $form) {
  */
 function udate_element_time_process($element) {
 
+  unset($element['#input']);
+
   /* @var $value \DateInterval */
   if (isset($element['#value']) && $element['#value'] instanceof DateInterval) {
     $value = $element['#value'];
@@ -144,16 +147,33 @@ function udate_element_time_process($element) {
 
   $now = new DateTime();
 
+  if (UDATE_GRANULARITY_MINUTE < $element['#granularity']) {
+    $hint     = 'HH';
+    $format   = 'H';
+    $default  = $value ? $value->format(UDATE_TIME_FORMAT_HOUR) : null;
+  } else if (UDATE_GRANULARITY_SECOND < $element['#granularity']) {
+    $hint     = 'HH:MM';
+    $format   = 'H:i';
+    $default  = $value ? $value->format(UDATE_TIME_FORMAT_MINUTE) : null;
+  } else {
+    $hint     = 'HH:MM:SS';
+    $format   = 'H:i:s';
+    $default  = $value ? $value->format(UDATE_TIME_FORMAT_DEFAULT) : null;
+  }
+
   $element['time'] = array(
     '#title'          => isset($element['#title']) ? $element['#title'] : null,
+    '#title_display'  => isset($element['#title_display']) ? $element['#title_display'] : null,
+    '#field_prefix'   => isset($element['#field_prefix']) ? $element['#field_prefix'] : null,
+    '#field_suffix'   => isset($element['#field_suffix']) ? $element['#field_suffix'] : null,
     '#type'           => 'textfield',
     '#attributes'     => array(
-      'placeholder'   => $now->format('H:i:s'),
-      'title'         => t("Time format is @format", array('@format' => 'HH:MM:SS'))
+      'placeholder'   => $now->format($format),
+      'title'         => t("Time format is @format", array('@format' => $hint))
     ),
-    '#default_value'  => $value ? $value->format(UDATE_TIME_FORMAT_DEFAULT) : null,
-    '#size'           => 8,
-    '#maxlength'      => 8,
+    '#default_value'  => $default,
+    '#size'           => strlen($hint),
+    '#maxlength'      => strlen($hint),
     '#required'       => isset($element['#required']) ? $element['#required'] : false,
   );
 
@@ -212,6 +232,8 @@ function udate_element_time_validate(&$element, &$form_state, $form) {
  * Expands the udate datetime element.
  */
 function udate_element_datetime_process($element) {
+
+  unset($element['#input']);
 
   if (isset($element['#value']) && $element['#value'] instanceof DateTime) {
     $value = $element['#value'];
