@@ -377,7 +377,7 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
   switch ($instance['widget']['type']) {
 
     case 'udate':
-      $keys = array('date' => null);
+      $keys = array('date' => $instance['label']);
       break;
 
     case 'udate_range':
