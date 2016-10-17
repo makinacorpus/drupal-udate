@@ -400,6 +400,7 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
         '#granularity'  => $granularity,
         '#dateFormat'   => $dateFormat,
         '#timeTitle'    => $timeTitle,
+        '#required'     => $element['#required'],
       );
 
       if (!empty($items[$delta][$key])) {
