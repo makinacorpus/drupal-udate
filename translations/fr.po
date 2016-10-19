@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-10-19 15:57+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.8.6\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:108
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:26
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:202
+msgid "Granularity"
+msgstr "Granularité"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:112
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:30
+#: sites/all/modules/composer/drupal-udate/udate.module:184
+msgid "Second"
+msgstr "Seconde"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:113
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:31
+#: sites/all/modules/composer/drupal-udate/udate.module:185
+msgid "Minute"
+msgstr "Minute"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:114
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:32
+#: sites/all/modules/composer/drupal-udate/udate.module:186
+msgid "Hour"
+msgstr "Heure"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:115
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:33
+#: sites/all/modules/composer/drupal-udate/udate.module:187
+msgid "Day"
+msgstr "Jour"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:116
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:34
+#: sites/all/modules/composer/drupal-udate/udate.module:188
+msgid "Month"
+msgstr "Mois"
+
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerArgument.php:117
+#: sites/all/modules/composer/drupal-udate/lib/Udate/ViewsHandlerFilter.php:35
+#: sites/all/modules/composer/drupal-udate/udate.module:189
+msgid "Year"
+msgstr "Année"
+
+#: sites/all/modules/composer/drupal-udate/modules/planning/planning.module:71;84
+msgid "Planning dates"
+msgstr "Dates du planning"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Fr"
+msgstr "Ve"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Mo"
+msgstr "Lu"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Sa"
+msgstr "Sa"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Su"
+msgstr "Di"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Th"
+msgstr "Je"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "Tu"
+msgstr "Ma"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:42
+msgid "We"
+msgstr "Me"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "April"
+msgstr "avril"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "August"
+msgstr "août"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "December"
+msgstr "décembre"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "February"
+msgstr "février"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "January"
+msgstr "janvier"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "July"
+msgstr "juillet"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "June"
+msgstr "juin"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "March"
+msgstr "mars"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "May"
+msgstr "mai"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "November"
+msgstr "novembre"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "October"
+msgstr "octobre"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:43
+msgid "September"
+msgstr "septembre"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:73
+msgid "Date format is @format"
+msgstr "Le format de date est @format"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:118
+msgid "Date format is invalid"
+msgstr "Le format de date est invalide"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:123
+msgid "Date must be over %s"
+msgstr "La date doit être postérieure à %s"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:127
+msgid "Date must be under %s"
+msgstr "La date doit être antérieure à %s"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:172
+msgid "Time format is @format"
+msgstr "Le format de l'heure est @format"
+
+#: sites/all/modules/composer/drupal-udate/udate.element.inc:209;224
+msgid "Time format is invalid"
+msgstr "Le format de l'heure est invalide"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:16
+msgid "Date (µDate)"
+msgstr "Date (µDate)"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:17
+msgid "Stores a date or a datetime"
+msgstr "Stocke une date ou un datetime"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:27
+msgid "Date range (µDate)"
+msgstr "Période (µDate)"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:28
+msgid "Stores a date or a datetime range"
+msgstr "Stocke une date ou une période datetime"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:73
+msgid "Custom"
+msgstr "Personnalisé"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:75
+msgid "Format"
+msgstr "Format"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:82
+msgid "Custom format"
+msgstr "Format personnalisé"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:183
+msgid "Date format in widget"
+msgstr "Format de date du widget"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:186
+msgid ""
+"Widget works without JS even thought it's a jQuery datepicker, this "
+"determines the date format being used in the textfield. Please be aware that "
+"what is being asked here is a jQuery datepicker date format, not a PHP date "
+"format."
+msgstr ""
+"Le widget fonctionne sans JS même si c'est un sélecteur jQuery, ceci "
+"détermine le format de date utilisé pour le champ texte. Soyez conscient que "
+"ce qui est demandé ici est un format de date jQuery datepicker, pas un "
+"format de date PHP."
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:190
+msgid "Time widget title"
+msgstr "Titre du widget pour l'heure"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:205
+msgid "Field default setting"
+msgstr "Paramètre par défaut du champ"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:137;146;158
+msgid "Date picker"
+msgstr "Sélecteur de date"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:273;384
+msgid "End date"
+msgstr "Date de fin"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:273;384
+msgid "Start date"
+msgstr "Date de début"
+
+#: sites/all/modules/composer/drupal-udate/udate.field.inc:46;54
+msgid "Drupal date format"
+msgstr "Format de date Drupal"
