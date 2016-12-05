@@ -109,8 +109,8 @@ function udate_field_formatter_settings_summary($field, $instance, $view_mode) {
 function udate_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = [];
   $settings = $display['settings'];
-  $format = $settings['format'];
-  $custom = $settings['custom'];
+  $format = isset($settings['format']) ? $settings['format'] : 'custom';
+  $custom = isset($settings['custom']) ? $settings['custom'] : 'd/m/Y';
 
   foreach ($items as $delta => $item) {
     /** @var $date DateTime */
