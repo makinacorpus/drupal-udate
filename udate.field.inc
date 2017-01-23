@@ -415,6 +415,10 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
     );
   }
 
+  if ($instance['widget']['type'] === 'udate_range') {
+    $element['#element_validate'][] = 'udate_range_element_validate';
+  }
+
   return $element;
 }
 

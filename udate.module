@@ -209,3 +209,14 @@ function udate_views_api() {
     'version' => '3.0',
   );
 }
+
+/**
+ * Element validate for udate_range type.
+ */
+function udate_range_element_validate($element, &$form_state) {
+  $start = $element['date_start']['#value'];
+  $end = $element['date_end']['#value'];
+  if ($start && $end && $start > $element) {
+    form_error($element['date_end'], t('%name: end date must be after start date.', ['%name' => $element['#title']]));
+  }
+}
