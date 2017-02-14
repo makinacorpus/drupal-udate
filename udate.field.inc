@@ -423,6 +423,92 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
 }
 
 /**
+ * From the given field types, apply the given callback on each found instance
+ *
+ * This method should be language safe.
+ *
+ * @param string|string[] $types
+ * @param callable $callback
+ *   The following parameters will be given to the callback:
+ *     - &$items : reference to items being modified
+ *     - $language : the current language
+ *     - $instance : the field instance info
+ *     - $field : the field info
+ *
+ * @throws \LogicException
+ */
+function udate_field_process_callback($entity_type, $entity, $types, $callback) {
+
+  if (!is_callable($callback)) {
+    throw new \LogicException("\$callable must be a valid callback.");
+  }
+  if (!is_array($types)) {
+    $types = [$types];
+  }
+
+  list(,, $bundle) = entity_extract_ids($entity_type, $entity);
+  foreach (field_info_instances($entity_type, $bundle) as $instance) {
+
+    // Ensures that the field structure exists and is valid.
+    $field_name = $instance['field_name'];
+    if (!$field = field_info_field($field_name)) {
+      continue;
+    }
+
+    if (in_array($field['type'], $types)) {
+      if (!property_exists($entity, $field_name)) {
+        continue;
+      }
+      // Deal with every defined language over the field.
+      foreach ($entity->{$field_name} as $language => &$items) {
+        $callback($items, $language, $instance, $field);
+      }
+    }
+  }
+}
+
+/**
+ * Look-up for all fields that are managed by this module and restore values
+ * from string to \DateTime object: this is because in in the _field_invoke()
+ * method, Drupal core re-attaches the items on the node after the presave
+ * alteration, which resets the original \DateTime as strings.
+ *
+ * Please note that this may cause problems only if you work with node hooks
+ * on update or insert, or if you rebuild a node form with the altered node
+ * (for example, on node form validation errors, the fields will loose their
+ * values if they find a string instead of a \DateTime instance).
+ *
+ * --
+ *
+ * This code was recently refactored, but here is the legacy comment:
+ *
+ * The field API does not allow to proceed to field data transformation between
+ * the storage layer and the data we have in PHP userland code, so we need to
+ * attach ourselves on hook_field_load() to convert DATETIME strings to DateTime
+ * objects, then attach ourselves after save on those exact same fields in order
+ * to convert back the value from DATETIME string to DateTime object.
+ *
+ * Drupal is so wrong, in many ways, and this is one, really. They never get the
+ * chance to known anything about computer science and relational databases.
+ */
+function _udate_field_restore_datetime($entity_type, $entity) {
+  udate_field_process_callback(
+    $entity_type, $entity, ['udate', 'udate_range'],
+    function (&$items) {
+      foreach ($items as &$item) {
+        foreach (['date', 'date_start', 'date_end'] as $key) {
+          if (!empty($item[$key])) {
+            if (is_string($item[$key])) {
+              $item[$key] = \DateTime::createFromFormat(UDATE_PHP_DATETIME, $item[$key]);
+            }
+          }
+        }
+      }
+    }
+  );
+}
+
+/**
  * Implements hook_field_attach_presave().
  *
  * We use this hook instead of hook_field_presave() because it gets executed
@@ -433,47 +519,40 @@ function udate_field_widget_form(&$form, &$form_state, $field, $instance, $langc
  * @see udate_field_attach_update()
  */
 function udate_field_attach_presave($entity_type, $entity) {
-  list(,, $bundle) = entity_extract_ids($entity_type, $entity);
-  foreach (field_info_instances($entity_type, $bundle) as $instance) {
-
-    $field_name = $instance['field_name'];
-    if (!$field = field_info_field($field_name)) {
-      continue;
-    }
-
-    $keys = null;
-    switch ($field['type']) {
-
-      case 'udate':
-        $keys = array('date');
-        break;
-
-      case 'udate_range':
-        $keys = array('date_start', 'date_end');
-        break;
-    }
-
-    // Field API magic: foreach-ception.
-    if (!empty($keys) && !empty($entity->{$field_name})) {
-      foreach ($entity->{$field_name} as $language => &$items) {
-        foreach ($items as $delta => &$item) {
-          foreach ($keys as $key) {
-            if (!empty($item[$key])) {
-              if ($item[$key] instanceof DateTime) {
-                $item[$key] = $item[$key]->format(UDATE_PHP_DATETIME);
-                // PDOException : SQLSTATE[23000]: Integrity constraint violation: 1048
-                // Column 'planning_granularity' cannot be null: INSERT INTO {field_data_planning}
-                // @todo Check this has no other implications.
-                if (empty($item['granularity'])) {
-                  $item['granularity'] = 0;
-                }
+  udate_field_process_callback(
+    $entity_type, $entity, ['udate', 'udate_range'],
+    function (&$items) {
+      foreach ($items as &$item) {
+        foreach (['date', 'date_start', 'date_end'] as $key) {
+          if (!empty($item[$key])) {
+            if ($item[$key] instanceof DateTime) {
+              $item[$key] = $item[$key]->format(UDATE_PHP_DATETIME);
+              // PDOException : SQLSTATE[23000]: Integrity constraint violation: 1048
+              // Column 'planning_granularity' cannot be null: INSERT INTO {field_data_planning}
+              // @todo Check this has no other implications.
+              if (empty($item['granularity'])) {
+                $item['granularity'] = 0;
               }
             }
           }
         }
       }
     }
-  }
+  );
+}
+
+/**
+ * Implements hook_field_attach_insert().
+ */
+function udate_field_attach_update($entity_type, $entity) {
+  _udate_field_restore_datetime($entity_type, $entity);
+}
+
+/**
+ * Implements hook_field_attach_insert().
+ */
+function udate_field_attach_insert($entity_type, $entity) {
+  _udate_field_restore_datetime($entity_type, $entity);
 }
 
 /**
@@ -485,92 +564,15 @@ function udate_field_load($entity_type, $entities, $field, $instances, $langcode
     return;
   }
 
-  switch ($field['type']) {
-
-    case 'udate':
-      $keys = array('date');
-      break;
-
-    case 'udate_range':
-      $keys = array('date_start', 'date_end');
-      break;
-  }
-
-  if (!empty($keys)) {
-    foreach ($items as $id => &$eitems) {
-      foreach ($eitems as $delta => &$item) {
-        foreach ($keys as $key) {
-          if (!empty($item[$key])) {
-            $item[$key] = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item[$key]);
-          }
+  foreach ($items as &$eitems) {
+    foreach ($eitems as &$item) {
+      foreach (['date', 'date_start', 'date_end'] as $key) {
+        if (!empty($item[$key])) {
+          $item[$key] = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item[$key]);
         }
       }
     }
   }
-}
-
-/**
- * Fixes fields internal values to be DateTime objects after saving fields.
- *
- * The field API does not allow to proceed to field data transformation between
- * the storage layer and the data we have in PHP userland code, so we need to
- * attach ourselves on hook_field_load() to convert DATETIME strings to DateTime
- * objects, then attach ourselves after save on those exact same fields in order
- * to convert back the value from DATETIME string to DateTime object.
- *
- * Drupal is so wrong, in many ways, and this is one, really. They never get the
- * chance to known anything about computer science and relational databases.
- */
-function udate_field_attach_fix($entity_type, $entity) {
-  list(,, $bundle) = entity_extract_ids($entity_type, $entity);
-  foreach (field_info_instances($entity_type, $bundle) as $instance) {
-
-    $field_name = $instance['field_name'];
-    if (!$field = field_info_field($field_name)) {
-      continue;
-    }
-
-    $keys = null;
-    switch ($field['type']) {
-
-      case 'udate':
-        $keys = array('date');
-        break;
-
-      case 'udate_range':
-        $keys = array('date_start', 'date_end');
-        break;
-    }
-
-    // Field API magic: foreach-ception.
-    if (!empty($keys) && !empty($entity->{$field_name})) {
-      foreach ($entity->{$field_name} as $language => &$items) {
-        foreach ($items as $delta => &$item) {
-          foreach ($keys as $key) {
-            if (!empty($item[$key])) {
-              if (!$item[$key] instanceof DateTime) {
-                $item[$key] = DateTime::createFromFormat(UDATE_PHP_DATETIME, $item[$key]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_field_attach_insert().
- */
-function udate_field_attach_insert($entity_type, $entity) {
-  udate_field_attach_fix($entity_type, $entity);
-}
-
-/**
- * Implements hook_field_attach_update().
- */
-function udate_field_attach_update($entity_type, $entity) {
-  udate_field_attach_fix($entity_type, $entity);
 }
 
 /**
