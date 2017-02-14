@@ -38,7 +38,12 @@ function udate_element_date_process($element) {
 
   $phpFormat = udate_format_convert($element['#dateFormat']);
 
-  $settings = array(
+  $settings = [];
+  if (!empty($element['#settings'])) {
+    $settings = $element['#settings'];
+  }
+
+  $settings += array(
     'dayNamesMin'   => array(t("Su"), t("Mo"), t("Tu"), t("We"), t("Th"), t("Fr"), t("Sa")),
     'monthNames'    => array(t("January"), t("February"), t("March"), t("April"), t("May"), t("June"), t("July"), t("August"), t("September"), t("October"), t("November"), t("December")),
     'firstDay'      => 1,
