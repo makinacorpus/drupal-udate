@@ -137,6 +137,7 @@ function udate_element_info() {
       '#minDate'          => null,
       '#maxDate'          => null,
       '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
+      '#placeholder'      => null,
       '#attached' => [
         'library' =>
           [
@@ -151,6 +152,7 @@ function udate_element_info() {
       '#process'          => array('udate_element_time_process'),
       '#element_validate' => array('udate_element_time_validate'),
       '#granularity'      => UDATE_GRANULARITY_SECOND,
+      '#placeholder'      => null,
     ),
     // This widget only supports DateTime objects for input/output.
     'udatetime' => array(
@@ -166,6 +168,8 @@ function udate_element_info() {
       '#maxDate'          => null,
       '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
       '#granularity'      => UDATE_GRANULARITY_SECOND,
+      '#date_placeholder' => null,
+      '#time_placeholder' => null,
     ),
   );
 }

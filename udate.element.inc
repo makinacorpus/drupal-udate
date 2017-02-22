@@ -74,7 +74,7 @@ function udate_element_date_process($element) {
     '#id'             => $id,
     '#type'           => 'textfield',
     '#attributes'     => array(
-      'placeholder'   => $now->format($phpFormat),
+      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : $now->format($phpFormat),
       'title'         => t("Date format is @format", array('@format' => $element['#dateFormat'])),
     ),
     '#default_value'  => isset($value) ? $value->format($phpFormat) : null,
@@ -173,7 +173,7 @@ function udate_element_time_process($element) {
     '#field_suffix'   => isset($element['#field_suffix']) ? $element['#field_suffix'] : null,
     '#type'           => 'textfield',
     '#attributes'     => array(
-      'placeholder'   => $now->format($format),
+      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : $now->format($format),
       'title'         => t("Time format is @format", array('@format' => $hint))
     ),
     '#default_value'  => $default,
@@ -259,6 +259,7 @@ function udate_element_datetime_process($element) {
     '#maxDate'        => $element['#maxDate'],
     '#dateFormat'     => $element['#dateFormat'],
     '#default_value'  => $value,
+    '#placeholder'    => $element['#date_placeholder'],
   );
 
   $element['container']['time'] = array(
@@ -267,6 +268,7 @@ function udate_element_datetime_process($element) {
     '#required'       => isset($element['#required']) ? $element['#required'] : false,
     '#granularity'    => $element['#granularity'],
     '#default_value'  => $value ? new DateInterval($value->format('\P\TH\Hi\Ms\S')) : null,
+    '#placeholder'    => $element['#time_placeholder'],
   );
 
   return $element;
