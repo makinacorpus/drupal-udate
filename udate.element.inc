@@ -84,6 +84,12 @@ function udate_element_date_process($element) {
     '#description'    => isset($element['#description']) ? $element['#description'] : null,
   );
 
+  // Propagate AJAX settings
+  if (!empty($element['#ajax'])) {
+    $element['date']['#ajax'] = $element['#ajax'];
+    unset($element['#ajax']);
+  }
+
   $element['#required'] = false; // Avoid stupid FAPI errors.
 
   $element['#settings'] = $settings;
@@ -181,6 +187,12 @@ function udate_element_time_process($element) {
     '#maxlength'      => strlen($hint),
     '#required'       => isset($element['#required']) ? $element['#required'] : false,
   );
+
+  // Propagate AJAX settings
+  if (!empty($element['#ajax'])) {
+    $element['time']['#ajax'] = $element['#ajax'];
+    unset($element['#ajax']);
+  }
 
   // Special use case, leave the field empty when the hour is set to
   // just all zeros, it seems legit that the user probably didn't fill
