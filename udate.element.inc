@@ -52,7 +52,25 @@ function udate_element_date_process($element) {
     'dateFormat'    => $element['#dateFormat'],
     'phpDateFormat' => $phpFormat,
     'defaultDate'   => $value ? $value->format($phpFormat) : null,
+    'allowedRanges' => [],
   );
+
+  if (!empty($element['#ranges'])) {
+    // Validate range input
+    foreach ($element['#ranges'] as $index => $range) {
+      if (!is_array($range) && 2 !== count($range) || !preg_match('/^\d+-\d+$/', $range[0]) || !preg_match('/^\d+-\d+$/', $range[1])) {
+        trigger_error("malformed range, dropping", E_USER_WARNING);
+        unset($element['#ranges'][$index]);
+        continue;
+      }
+      if ($range[1] < $range[0]) {
+        trigger_error("malformed range: first date must be prior to second date, dropping", E_USER_WARNING);
+        unset($element['#ranges'][$index]);
+        continue;
+      }
+      $settings['allowedRanges'][] = $range;
+    }
+  }
 
   // Compute a predictable unique identifier for the field (there might be
   // more than one on the same screen).
@@ -114,6 +132,7 @@ function udate_element_date_process($element) {
  */
 function udate_element_date_validate(&$element, &$form_state, $form) {
 
+  /** @var \DateTimeInterface $value */
   $value = $element['date']['#value'];
 
   // Value can be null?
@@ -128,6 +147,26 @@ function udate_element_date_validate(&$element, &$form_state, $form) {
   if (!$value = DateTime::createFromFormat($element['#settings']['phpDateFormat'] . ' H:i:s', $value . ' 00:00:00')) {
     form_set_error(implode('][', $element['#parents']), t("Date format is invalid"));
     return;
+  }
+
+  // Validate allowed ranges.
+  if (isset($element['#ranges'])) {
+    $current = $value->format('m-d');
+    $atLeastOne = false;
+    foreach ($element['#ranges'] as $range) {
+      list($start, $stop) = $range;
+      if ($start <= $current && $current <= $stop) {
+        $atLeastOne = true;
+        break;
+      }
+    }
+    if (!$atLeastOne) {
+      if (empty($element['#rangesMessage'])) {
+        form_set_error(implode('][', $element['#parents']), t("Selected day is not within the allowed ranges"));
+      } else {
+        form_set_error(implode('][', $element['#parents']), $element['#rangesMessage']);
+      }
+    }
   }
 
   if (isset($element['#minDate']) && $value < $element['#minDate']) {
@@ -270,6 +309,7 @@ function udate_element_datetime_process($element) {
     '#minDate'        => $element['#minDate'],
     '#maxDate'        => $element['#maxDate'],
     '#dateFormat'     => $element['#dateFormat'],
+    '#ranges'         => $element['#ranges'],
     '#default_value'  => $value,
     '#placeholder'    => $element['#date_placeholder'],
   );

@@ -138,6 +138,8 @@ function udate_element_info() {
       '#maxDate'          => null,
       '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
       '#placeholder'      => null,
+      '#ranges'           => null, // An array or ranges such as ['mm-dd', 'mm-dd']
+      '#rangesMessage'    => null, // Message when range is invalid
       '#attached' => [
         'library' =>
           [
@@ -168,6 +170,8 @@ function udate_element_info() {
       '#maxDate'          => null,
       '#dateFormat'       => UDATE_DATE_FORMAT_DEFAULT,
       '#granularity'      => UDATE_GRANULARITY_SECOND,
+      '#ranges'           => null, // An array or ranges such as ['mm-dd', 'mm-dd']
+      '#rangesMessage'    => null, // Message when range is invalid
       '#date_placeholder' => null,
       '#time_placeholder' => null,
     ),
