@@ -119,6 +119,8 @@ function udate_field_formatter_view($entity_type, $entity, $field, $instance, $l
       // Sorry sometime it seems to fail, weird...
     } else if (isset($item['date_start'])) {
       $date = $item['date_start'];
+    } else if (isset($item['date_end'])) {
+      $date = $item['date_end'];
     } else {
       continue;
     }
@@ -589,7 +591,7 @@ function udate_field_is_empty($item, $field) {
       // all the events whether or not they are ponctual or a range to live
       // in the same field. Start date serves the purpose of managing single
       // dates using a date range field.
-      return empty($item['date_start']);
+      return empty($item['date_start']) && empty($item['date_end']);
   }
 
   return false;
