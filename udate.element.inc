@@ -92,7 +92,7 @@ function udate_element_date_process($element) {
     '#id'             => $id,
     '#type'           => 'textfield',
     '#attributes'     => array(
-      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : $now->format($phpFormat),
+      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : t("Date format is @format", array('@format' => $element['#dateFormat'])),
       'title'         => t("Date format is @format", array('@format' => $element['#dateFormat'])),
     ),
     '#default_value'  => isset($value) ? $value->format($phpFormat) : null,
@@ -218,7 +218,7 @@ function udate_element_time_process($element) {
     '#field_suffix'   => isset($element['#field_suffix']) ? $element['#field_suffix'] : null,
     '#type'           => 'textfield',
     '#attributes'     => array(
-      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : $now->format($format),
+      'placeholder'   => $element['#placeholder'] ? $element['#placeholder'] : t("Time format is @format", array('@format' => $hint)),
       'title'         => t("Time format is @format", array('@format' => $hint))
     ),
     '#default_value'  => $default,
